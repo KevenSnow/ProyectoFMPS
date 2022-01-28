@@ -184,11 +184,38 @@ Como los calculos se están haciendo sobre el dominio de la frecuencia no existe
 \item \textbf{Problemas de sincronización:} De existir existen varios métodos para resolver esto, por ejemplo utilizando la técnica de correlación cruzada.
 \end{itemize}
 \section{Aplicación.}
-$\tilde{a}$
+\subsubsection{Sonidos}
+El primer paso fue sencillo, dado que se encontró un pack (los cuales están dentro del repositorio) de sonidos del piano tocados de manera limpia y prolongando la nota durante 10 segundos, es decir, sonidos ideales para el poryecto. Estos estaban en formato .mp3 por lo que se tuvieron que convertir a .wav, además estaban en formato stereo, por lo que a través de la operación
+\begin{verbatim}
+np.mean(x, axis=1)
+\end{verbatim}
+\subsubsection{Primeros Problemas Estimando los valores}
+El problema principal de esta parte es el tiempo de cálculo, dado que se intentó replicar el algoritmo de forma bruta y no se encontraron formas de optimizarlo, es por estos que al calcular el espectro de potencia acumulada $P_{cum}(f,1)$ se demoró bastante, luego se interpoló y se estimaron los componentes sinusoidales. De donde mis principales dudas se referían a como encontrar las distintas frecuencias propuestas en la ecuación (1). Luego para encontrar los factores de amortiguamiento, se fijó una frecuencia de $f_0=0.5$ y se procedió a calcular $p_{cum}(f_0,i)$ variando el $i$, que por la teoría los factores se obtenían de las pendiente de este espectro obtenido. Cosa que se complico a la hora de intentar plantear un código que rescatase esos valores. \\ \\
+Y faltando esta información no se pudieron encontrar los filtros resonantes.
+\subsubsection{Problemas Generales}
+Básicamente se tuvieron problemas a la hora de implementar el algoritmo al código, y en general se desperdició mucho tiempo intentando replicar el algoritmo de manera bruta y no buscando alternativas más optimizadas, por ejemplo a la hora de definir el $p_{cum)(f,i)$, de la siguiente manera.
+\begin{verbatim}
+def p(x,f,i):
+    ni=7000*i
+    Pi=[]
+    window=np.hamming(7000)
+    for k in range(0,7000):
+        Pi.append(x[k+ni]*window[k]*np.exp(-1j*2*np.pi*k*f/7000))
+    sumi=sum(Pi)
+    return sumi
 
-
-
-
+def pcum(x,f,i):
+    accum=[]
+    for j in range(0,63-i):
+        jaux=62-j
+        accum.append(abs(p(x,f,jaux))**2)
+    pc=sum(accum)
+    return math.log(pc)    
+\end{verbatim}
+se perdió valioso tiempo a utilizar en poder intentar seguir con el algoritmo, suponiendo un filtro de amortiguamiento cualquiera. \\
+Para poder así presentar un código referido a la parte en donde se estima la señal de excitación dado el filtro. \\ 
+\section{Conclusión}
+En conclusión puedo resumir que en general el proceso del algoritmo lo encontré bastante original y anhelaba poder llegar a obtener dado una señal, los filtros resonantes y la señal de excitación que originó el sonido, para así obtener la síntesis de quizás cualquier sonido del tipo percusivo ingresado al programa. Traté de buscar trabajos similares en la red Github fallando completamente, pero he de admitir que no desistí en intentar hacer surgir ideas y plasmarlas hasta el último día. 
 
 
 
